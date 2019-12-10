@@ -1,0 +1,130 @@
+
+!
+! Last configuration change at 19:58:11 UTC Sun Nov 6 2016
+version 15.1
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R_2_tftp
+!
+boot-start-marker
+boot-end-marker
+!
+!
+enable password class
+!
+no aaa new-model
+!
+memory-size iomem 15
+!
+dot11 syslog
+ip source-route
+!
+!
+ip cef
+!
+!
+!
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+voice-card 0
+!
+crypto pki token default removal timeout 0
+!
+!
+!
+!
+license udi pid CISCO2851 sn FCZ103670S6
+!
+redundancy
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0
+ description Podlaczenie do LAN_2
+ ip address 192.168.102.20 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1
+ no ip address
+ shutdown
+ duplex auto
+ speed auto
+!
+interface Serial0/0/0
+ description Podlaczenie do R_3
+ ip address 10.2.3.1 255.255.255.0
+ clock rate 64000
+!
+interface Serial0/1/0
+ description Podlaczenie do R_1
+ ip address 10.1.2.2 255.255.255.0
+!
+interface FastEthernet0/2/0
+ description Podlaczenie do LAN_2
+ ip address 192.168.2.20 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface Serial0/3/0
+ no ip address
+ shutdown
+ clock rate 2000000
+!
+ip forward-protocol nd
+no ip http server
+no ip http secure-server
+!
+!
+!
+!
+!
+!
+!
+!
+!
+control-plane
+!
+!
+!
+!
+mgcp profile default
+!
+!
+!
+!
+!
+banner motd  System nadzorowany. Dostep tylko dla autoryzowanych uzytkownikow 
+!
+line con 0
+ password cisco
+ login
+line aux 0
+line vty 0 4
+ password cisco
+ login
+ transport input all
+!
+scheduler allocate 20000 1000
+end
