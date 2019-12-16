@@ -1,0 +1,65 @@
+/*
+	int iSuppliers = 2;
+	int iFactories = 3;
+	int iWarehouses = 3;
+	int iSellers = 2;
+	int iSize = iSuppliers * iFactories + iFactories * iWarehouses + iWarehouses * iSellers;
+	bool bsucc = true;
+	double* pdSolution = new double[iSize];
+
+	for (int i = 0; i < iSize; i++) pdSolution[i] = 3;
+
+	for (int i = 0; i < iSuppliers * iFactories; i++) pdSolution[i] = 3;
+	for (int i = iSuppliers * iFactories; i < iSuppliers * iFactories + iFactories * iWarehouses; i++) pdSolution[i] = 2;
+	for (int i = iSuppliers * iFactories + iFactories * iWarehouses; i < iSize; i++) pdSolution[i] = 2;
+
+	CMscnProblem problem(iSuppliers, iFactories, iWarehouses, iSellers, bsucc);
+	if (bsucc == true)
+	{
+		double result = 0;
+		/*
+		problem.b_set_production_capacity_val(1000, 0);
+		problem.b_set_production_capacity_val(1000, 1);
+		problem.b_set_factory_capacity_val(1000, 0);
+		problem.b_set_factory_capacity_val(1000, 1);
+		problem.b_set_factory_capacity_val(1000, 2);
+		problem.b_set_warehouse_capacity_val(1000, 0);
+		problem.b_set_warehouse_capacity_val(1000, 1);
+		problem.b_set_warehouse_capacity_val(1000, 2);
+		problem.b_set_shop_capacity_val(1000, 0);
+		problem.b_set_shop_capacity_val(1000, 1);
+
+		for (int i = 0; i < iSuppliers; i++) problem.b_set_supplier_contract_val(300 + i, i);
+		for (int i = 0; i < iFactories; i++) problem.b_set_factory_contract_val(200 + i, i);
+		for (int i = 0; i < iWarehouses; i++) problem.b_set_warehouse_contract_val(100 + i, i);
+		for (int i = 0; i < iSellers; i++) problem.b_set_shop_profit_val(100 + 100 * i, i);
+
+		for (int i = 0; i < iSuppliers; i++)
+		{
+			for (int j = 0; j < iFactories; j++)
+			{
+				problem.b_set_delivery_matrix_val(2, i, j);
+			}
+		}
+		for (int i = 0; i < iFactories; i++)
+		{
+			for (int j = 0; j < iWarehouses; j++)
+			{
+				problem.b_set_factory_matrix_val(3, i, j);
+			}
+		}
+		for (int i = 0; i < iWarehouses; i++)
+		{
+			for (int j = 0; j < iSellers; j++)
+			{
+				problem.b_set_warehouse_matrix_val(4, i, j);
+			}
+		}
+
+		problem.bWriteToFIle("xdd.txt"); 
+		problem.bReadFromFile("test1.txt");
+		problem.bReadSolutionFromFile("solution1.txt", &pdSolution, iSize);
+		problem.bGetQuality(pdSolution, iSize, result);
+		std::cout << result << std::endl;
+	}
+	else { std::cout << "error"; } */
