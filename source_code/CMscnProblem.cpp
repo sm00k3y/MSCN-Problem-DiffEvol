@@ -11,8 +11,6 @@ CMscnProblem::CMscnProblem()
 	i_factory_count = DEFAULT_ANY_COUNT;
 	i_warehouse_count = DEFAULT_ANY_COUNT;
 	i_shop_count = DEFAULT_ANY_COUNT;
-	vInitTabs();
-	vInitMatrixes();
 	pf_file = NULL;
 }
 
@@ -29,8 +27,6 @@ CMscnProblem::CMscnProblem(unsigned int iSupplierCount, unsigned int iFactoryCou
 		i_factory_count = iFactoryCount;
 		i_warehouse_count = iWarehouseCount;
 		i_shop_count = iShopCount;
-		vInitTabs();
-		vInitMatrixes();
 		pf_file = NULL;
 		bSuccess = true;
 	}
@@ -39,36 +35,6 @@ CMscnProblem::CMscnProblem(unsigned int iSupplierCount, unsigned int iFactoryCou
 CMscnProblem::~CMscnProblem()
 {
 	delete pf_file;
-}
-
-void CMscnProblem::vInitTabs()
-{
-	bool bMethodSuccessful = true;
-	t_suppliers_contract_prizes_tab = CTable(i_supplier_count, bMethodSuccessful);
-	t_factories_contract_prizes_tab = CTable(i_factory_count, bMethodSuccessful);
-	t_warehouses_contract_prizes_tab = CTable(i_warehouse_count, bMethodSuccessful);
-
-	t_production_capacity_tab = CTable(i_supplier_count, bMethodSuccessful);
-	t_factory_capacity_tab = CTable(i_factory_count, bMethodSuccessful);
-	t_warehouse_capacity_tab = CTable(i_warehouse_count, bMethodSuccessful);
-	t_shop_capacity_tab = CTable(i_shop_count, bMethodSuccessful);
-
-	t_shop_profit_tab = CTable(i_shop_count, bMethodSuccessful);
-}
-
-void CMscnProblem::vInitMatrixes()
-{
-	bool bMethodSuccessful = true;
-	m_delivery_matrix = CMatrix(i_supplier_count, i_factory_count, bMethodSuccessful);
-	m_factory_matrix = CMatrix(i_factory_count, i_warehouse_count, bMethodSuccessful);
-	m_warehouse_matrix = CMatrix(i_warehouse_count, i_shop_count, bMethodSuccessful);
-
-	m_min_supply_values = CMatrix(i_supplier_count, i_factory_count, bMethodSuccessful);
-	m_max_supply_values = CMatrix(i_supplier_count, i_factory_count, bMethodSuccessful);
-	m_min_factories_values = CMatrix(i_factory_count, i_warehouse_count, bMethodSuccessful);
-	m_max_factories_values = CMatrix(i_factory_count, i_warehouse_count, bMethodSuccessful);
-	m_min_warehouse_values = CMatrix(i_warehouse_count, i_shop_count, bMethodSuccessful);
-	m_max_warehouse_values = CMatrix(i_warehouse_count, i_shop_count, bMethodSuccessful);
 }
 
 bool CMscnProblem::b_set_supplier_count(unsigned int iSupplierCount)
@@ -125,85 +91,67 @@ bool CMscnProblem::b_set_shop_count(unsigned int iShopCount)
 	return true;
 }
 
-bool CMscnProblem::bGetQuality(double* pdSolution, int iSolutionSize, double& result)
+bool CMscnProblem::bGetQuality(CSolution& s_solution, double& result)
 {
-	if (!bConstraintsSatisfied(pdSolution, iSolutionSize)) return false;
+	//if (!bConstraintsSatisfied(s_solution)) return false; // sprawdzac czy nie
 
-	result = 0;
-	int i_solution_index = 0;
 	double d_delivery_cost = 0;
 	double d_contracts_cost = 0;
 	double d_income = 0;
-	double d_temp_product_qty;
 	bool bMethodSuccessful = true;
 
-	//d_delivery_cost += m_delivery_matrix.d_get_whole_delivery_cost(pdSolution, i_solution_index, bMethodSuccessful);
-	//d_delivery_cost += m_factory_matrix.d_get_whole_delivery_cost(pdSolution, i_solution_index, bMethodSuccessful);
-	//d_delivery_cost += m_warehouse_matrix.d_get_whole_delivery_cost(pdSolution, i_solution_index, bMethodSuccessful);
+	d_delivery_cost += m_delivery_matrix.d_multiply_matrix(s_solution.m_get_delivery_qty_matrix(), bMethodSuccessful);
+	d_delivery_cost += m_factory_matrix.d_multiply_matrix(s_solution.m_get_factory_qty_matrix(), bMethodSuccessful);
+	d_delivery_cost += m_warehouse_matrix.d_multiply_matrix(s_solution.m_get_warehouse_qty_matrix(), bMethodSuccessful);
 	
 	for (int i = 0; i < i_supplier_count; i++)
 	{
-		d_temp_product_qty = 0;
-		for (int j = 0; j < i_factory_count; j++)
-		{
-			d_delivery_cost += (m_delivery_matrix.d_get_val(i, j, bMethodSuccessful) * pdSolution[i_solution_index]);
-			d_temp_product_qty += pdSolution[i_solution_index];
-			i_solution_index++;
-		}
-		if (d_temp_product_qty > 0) d_contracts_cost += t_suppliers_contract_prizes_tab.d_get_value(i, bMethodSuccessful);
+		if (s_solution.bSumOfFactoriesProductsGreaterThanZero(i, bMethodSuccessful)) d_contracts_cost += t_suppliers_contract_prizes_tab.d_get_value(i, bMethodSuccessful);
 	}
 
 	for (int i = 0; i < i_factory_count; i++)
 	{
-		d_temp_product_qty = 0;
-		for (int j = 0; j < i_warehouse_count; j++)
-		{
-			d_delivery_cost += (m_factory_matrix.d_get_val(i, j, bMethodSuccessful) * pdSolution[i_solution_index]);
-			d_temp_product_qty += pdSolution[i_solution_index];
-			i_solution_index++;
-		}
-		if (d_temp_product_qty > 0) d_contracts_cost += t_factories_contract_prizes_tab.d_get_value(i, bMethodSuccessful);
+		if (s_solution.bSumOfWarehousesProductsGraterThanzero(i, bMethodSuccessful)) d_contracts_cost += t_factories_contract_prizes_tab.d_get_value(i, bMethodSuccessful);
 	}
 
 	for (int i = 0; i < i_warehouse_count; i++)
 	{
-		d_temp_product_qty = 0;
 		for (int j = 0; j < i_shop_count; j++)
 		{
-			d_delivery_cost += (m_warehouse_matrix.d_get_val(i, j, bMethodSuccessful) * pdSolution[i_solution_index]);
-			d_temp_product_qty += pdSolution[i_solution_index];
-			d_income += pdSolution[i_solution_index] * t_shop_profit_tab.d_get_value(j, bMethodSuccessful);
-			i_solution_index++;
+			d_income += s_solution.m_get_warehouse_qty_matrix().d_get_val(i,j,bMethodSuccessful) * t_shop_profit_tab.d_get_value(j, bMethodSuccessful);
 		}
-		if (d_temp_product_qty > 0) d_contracts_cost += t_warehouses_contract_prizes_tab.d_get_value(i, bMethodSuccessful);
+		if (s_solution.bSumOfShopsProductsGreaterThanZero(i, bMethodSuccessful)) d_contracts_cost += t_warehouses_contract_prizes_tab.d_get_value(i, bMethodSuccessful);
 	}
 
 	result = d_income - d_delivery_cost - d_contracts_cost;
 	return true;
 }
 
-bool CMscnProblem::bConstraintsSatisfied(double* pdSolution, int iSolutionSize)
+bool CMscnProblem::bConstraintsSatisfied(CSolution& s_solution)
 {
-	if (pdSolution == NULL || bCheckSolutionForNegativeNumbers(pdSolution, iSolutionSize) || bCheckSolutionSize(iSolutionSize) 
-		|| bCheckCapacityOverload(pdSolution) || bCheckInsufficientAmount(pdSolution) || bCheckMinMaxOutOfRage(pdSolution)) return false;
+	if (bCheckSolutionSize(s_solution) || bCheckSolutionForNegativeNumbers(s_solution) || bCheckCapacityOverload(s_solution) || bCheckInsufficientAmount(s_solution) || bCheckMinMaxOutOfRage(s_solution)) return false;
 	else return true;
 }
 
-bool CMscnProblem::bCheckSolutionSize(int iSolutionSize)
+bool CMscnProblem::bCheckSolutionSize(CSolution& s_solution)
 {
-	return iSolutionSize != (i_supplier_count * i_factory_count + i_factory_count * i_warehouse_count + i_warehouse_count * i_shop_count);
+	if(s_solution.i_get_solution_size() != (i_supplier_count * i_factory_count + i_factory_count * i_warehouse_count + i_warehouse_count * i_shop_count)) return true;
+	if (s_solution.i_get_suppliers_count() != i_supplier_count || s_solution.i_get_factories_count() != i_factory_count || s_solution.i_get_warehouses_count() != i_warehouse_count || s_solution.i_get_shops_count() != i_shop_count) return true;
+	
+	return false;
 }
 
-bool CMscnProblem::bCheckSolutionForNegativeNumbers(double* pdSolution, int iSolutionSize)
+bool CMscnProblem::bCheckSolutionForNegativeNumbers(CSolution& s_solution)
 {
-	for (int i = 0; i < iSolutionSize; i++)
+	bool bMethodSucessful = true;
+	for (int i = 0; i < s_solution.i_get_solution_size(); i++)
 	{
-		if (pdSolution[i] < 0) return true;
+		if (s_solution.t_get_pdSolution().d_get_value(i, bMethodSucessful) < 0) return true;
 	}
 	return false;
 }
 
-bool CMscnProblem::bCheckCapacityOverload(double* pdSolution)	// metoda do 4 pierwszych p-punktow tabelki
+bool CMscnProblem::bCheckCapacityOverload(CSolution& s_solution)	// metoda do 4 pierwszych p-punktow tabelki
 {
 	int i_solution_index = 0;
 	double d_product_qty;
@@ -211,129 +159,62 @@ bool CMscnProblem::bCheckCapacityOverload(double* pdSolution)	// metoda do 4 pie
 
 	for (int i = 0; i < i_supplier_count; i++)
 	{
-		d_product_qty = 0;
-		for (int j = 0; j < i_factory_count; j++)
-		{
-			d_product_qty += pdSolution[i_solution_index];
-			i_solution_index++;
-		}
+		d_product_qty = s_solution.m_get_delivery_qty_matrix().d_get_second_dim_sum(i, bMethodSuccessful);
 		if (d_product_qty > t_production_capacity_tab.d_get_value(i, bMethodSuccessful)) return true;
 	}
 
 	for (int i = 0; i < i_factory_count; i++)
 	{
-		d_product_qty = 0;
-		for (int j = 0; j < i_warehouse_count; j++)
-		{
-			d_product_qty += pdSolution[i_solution_index];
-			i_solution_index++;
-		}
+		d_product_qty = s_solution.m_get_factory_qty_matrix().d_get_second_dim_sum(i, bMethodSuccessful);
 		if (d_product_qty > t_factory_capacity_tab.d_get_value(i, bMethodSuccessful)) return true;
 	}
 
-	int i_second_solution_index = i_solution_index;
-
 	for (int i = 0; i < i_warehouse_count; i++)
 	{
-		d_product_qty = 0;
-		for (int j = 0; j < i_shop_count; j++)
-		{
-			d_product_qty += pdSolution[i_solution_index];
-			i_solution_index++;
-		}
+		d_product_qty = s_solution.m_get_warehouse_qty_matrix().d_get_second_dim_sum(i, bMethodSuccessful);
 		if (d_product_qty > t_warehouse_capacity_tab.d_get_value(i, bMethodSuccessful)) return true;
 	}
 
-	int i_temp_solution_index = i_second_solution_index;
-
 	for (int i = 0; i < i_shop_count; i++)
 	{
-		i_second_solution_index = i_temp_solution_index;
-		d_product_qty = 0;
-		for (int j = 0; j < i_warehouse_count; j++)
-		{
-			d_product_qty += pdSolution[i_second_solution_index];
-			i_second_solution_index += i_shop_count;
-		}
+		d_product_qty = s_solution.m_get_warehouse_qty_matrix().d_get_first_dim_sum(i, bMethodSuccessful);
 		if (d_product_qty > t_shop_capacity_tab.d_get_value(i, bMethodSuccessful)) return true;
-		i_temp_solution_index++;
 	}
 
 	return false;
 }
 
-bool CMscnProblem::bCheckInsufficientAmount(double* pdSolution)	// metoda do 2 ostatnich p-punktow tabelki
+bool CMscnProblem::bCheckInsufficientAmount(CSolution& s_solution)	// metoda do 2 ostatnich p-punktow tabelki
 {
-	int i_solution_index = 0;
-	int i_temp_solution_index = 0;
-	int i_warehouse_solution_index = i_supplier_count * i_factory_count;
-	double d_sum_TO_factory = 0;
-	double d_sum_FROM_factory = 0;
+	bool bMethodSucessful = true;
+	double d_sum_TO_entity = 0;
+	double d_sum_FROM_entity = 0;
 
 	for (int i = 0; i < i_factory_count; i++)
 	{
-		i_solution_index = i_temp_solution_index;
-		d_sum_TO_factory = 0;
-		d_sum_FROM_factory = 0;
-
-		for (int j = 0; j < i_supplier_count; j++)
-		{
-			d_sum_TO_factory += pdSolution[i_solution_index];
-			i_solution_index += i_factory_count;
-		}
-		i_temp_solution_index++;
-
-
-		for (int k = 0; k < i_warehouse_count; k++)
-		{
-			d_sum_FROM_factory += pdSolution[i_warehouse_solution_index];
-			i_warehouse_solution_index++;
-		}
-
-		if (d_sum_TO_factory < d_sum_FROM_factory) return true;
+		d_sum_TO_entity = s_solution.m_get_delivery_qty_matrix().d_get_first_dim_sum(i, bMethodSucessful);
+		d_sum_FROM_entity = s_solution.m_get_factory_qty_matrix().d_get_second_dim_sum(i, bMethodSucessful);
+		if (d_sum_TO_entity < d_sum_FROM_entity) return true;
 	}
-
-	i_solution_index = i_supplier_count * i_factory_count;
-	i_temp_solution_index = i_solution_index;
-	int i_shop_solution_index = i_solution_index + (i_factory_count * i_warehouse_count);
 
 	for (int i = 0; i < i_warehouse_count; i++)
 	{
-		i_solution_index = i_temp_solution_index;
-		d_sum_TO_factory = 0;
-		d_sum_FROM_factory = 0;
-
-		for (int j = 0; j < i_factory_count; j++)
-		{
-			d_sum_TO_factory += pdSolution[i_solution_index];
-			i_solution_index += i_warehouse_count;
-		}
-		i_temp_solution_index++;
-
-
-		for (int k = 0; k < i_shop_count; k++)
-		{
-			d_sum_FROM_factory += pdSolution[i_shop_solution_index];
-			i_shop_solution_index++;
-		}
-
-		if (d_sum_TO_factory < d_sum_FROM_factory) return true;
+		d_sum_TO_entity = s_solution.m_get_factory_qty_matrix().d_get_first_dim_sum(i, bMethodSucessful);
+		d_sum_FROM_entity = s_solution.m_get_warehouse_qty_matrix().d_get_second_dim_sum(i, bMethodSucessful);
+		if (d_sum_TO_entity < d_sum_FROM_entity) return true;
 	}
 
 	return false;
 }
 
-bool CMscnProblem::bCheckMinMaxOutOfRage(double* pdSolution)
+bool CMscnProblem::bCheckMinMaxOutOfRage(CSolution& s_solution)
 {
-	int i_solution_index = 0;
 	bool bMethodSuccessful = true;
 	for (int i = 0; i < i_supplier_count; i++)
 	{
 		for (int j = 0; j < i_factory_count; j++)
 		{
-			if (pdSolution[i_solution_index] < m_min_supply_values.d_get_val(i, j, bMethodSuccessful)
-				|| pdSolution[i_solution_index] > m_max_supply_values.d_get_val(i, j, bMethodSuccessful)) return true;
-			i_solution_index++;
+			if (s_solution.m_get_delivery_qty_matrix().d_get_val(i, j, bMethodSuccessful) < m_min_supply_values.d_get_val(i, j, bMethodSuccessful) || s_solution.m_get_delivery_qty_matrix().d_get_val(i, j, bMethodSuccessful) > m_max_supply_values.d_get_val(i, j, bMethodSuccessful)) return true;
 		}
 	}
 
@@ -341,9 +222,7 @@ bool CMscnProblem::bCheckMinMaxOutOfRage(double* pdSolution)
 	{
 		for (int j = 0; j < i_warehouse_count; j++)
 		{
-			if (pdSolution[i_solution_index] < m_min_factories_values.d_get_val(i, j, bMethodSuccessful)
-				|| pdSolution[i_solution_index] > m_max_factories_values.d_get_val(i, j, bMethodSuccessful)) return true;
-			i_solution_index++;
+			if (s_solution.m_get_factory_qty_matrix().d_get_val(i, j, bMethodSuccessful) < m_min_factories_values.d_get_val(i, j, bMethodSuccessful) || s_solution.m_get_factory_qty_matrix().d_get_val(i, j, bMethodSuccessful) > m_max_factories_values.d_get_val(i, j, bMethodSuccessful)) return true;
 		}
 	}
 
@@ -351,9 +230,7 @@ bool CMscnProblem::bCheckMinMaxOutOfRage(double* pdSolution)
 	{
 		for (int j = 0; j < i_shop_count; j++)
 		{
-			if (pdSolution[i_solution_index] < m_min_warehouse_values.d_get_val(i, j, bMethodSuccessful)
-				|| pdSolution[i_solution_index] > m_max_warehouse_values.d_get_val(i, j, bMethodSuccessful)) return true;
-			i_solution_index++;
+			if (s_solution.m_get_warehouse_qty_matrix().d_get_val(i, j, bMethodSuccessful) < m_min_warehouse_values.d_get_val(i, j, bMethodSuccessful) || s_solution.m_get_warehouse_qty_matrix().d_get_val(i, j, bMethodSuccessful) > m_max_warehouse_values.d_get_val(i, j, bMethodSuccessful)) return true;
 		}
 	}
 
@@ -664,75 +541,6 @@ bool CMscnProblem::bReadFromFile(std::string sFileName)
 			m_max_warehouse_values.b_set_value(dTempVal2, i, j);
 		}
 	}
-
-	fclose(pf_file);
-	pf_file = NULL;
-	return true;
-}
-
-bool CMscnProblem::bReadSolutionFromFile(std::string sSolutionFileName, double** pdSolution, int& iSolutionSize)
-{
-	if (pf_file != NULL) fclose(pf_file);
-	pf_file = fopen(sSolutionFileName.c_str(), "r");
-	if (pf_file == NULL) return false;
-
-	char cLine[MAX_LINE_LEN];
-	int is_supplier_count = 0;
-	int is_factories_count = 0;
-	int is_warehouses_count = 0;
-	int is_shop_count = 0;
-	double* pd_solution;
-	int i_solution_size = 0;
-	int i_temp_solution_index = 0;
-	double dTempVal = 0;
-
-	fscanf(pf_file, "%s ", cLine);
-	fscanf(pf_file, "%i", &is_supplier_count);
-	fscanf(pf_file, "%s ", cLine);
-	fscanf(pf_file, "%i", &is_factories_count);
-	fscanf(pf_file, "%s ", cLine);
-	fscanf(pf_file, "%i", &is_warehouses_count);
-	fscanf(pf_file, "%s ", cLine);
-	fscanf(pf_file, "%i", &is_shop_count);
-	
-	i_solution_size = is_supplier_count * is_factories_count + is_factories_count * is_warehouses_count + is_warehouses_count * is_shop_count;
-	pd_solution = new double[i_solution_size];
-	
-	fscanf(pf_file, "%s ", cLine);
-	for (int i = 0; i < is_supplier_count; i++)
-	{
-		for (int j = 0; j < is_factories_count; j++)
-		{
-			fscanf(pf_file, "%lf", &dTempVal);
-			pd_solution[i_temp_solution_index] = dTempVal;
-			i_temp_solution_index++;
-		}
-	}
-
-	fscanf(pf_file, "%s ", cLine);
-	for (int i = 0; i < is_factories_count; i++)
-	{
-		for (int j = 0; j < is_warehouses_count; j++)
-		{
-			fscanf(pf_file, "%lf", &dTempVal);
-			pd_solution[i_temp_solution_index] = dTempVal;
-			i_temp_solution_index++;
-		}
-	}
-
-	fscanf(pf_file, "%s ", cLine);
-	for (int i = 0; i < is_warehouses_count; i++)
-	{
-		for (int j = 0; j < is_shop_count; j++)
-		{
-			fscanf(pf_file, "%lf", &dTempVal);
-			pd_solution[i_temp_solution_index] = dTempVal;
-			i_temp_solution_index++;
-		}
-	}
-
-	(*pdSolution) = pd_solution;
-	iSolutionSize = i_solution_size;
 
 	fclose(pf_file);
 	pf_file = NULL;

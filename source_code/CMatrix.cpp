@@ -119,22 +119,56 @@ double CMatrix::d_get_val(int i_xIndex, int i_yIndex, bool& bSuccess)
 	else return pd_matrix[i_xIndex][i_yIndex];
 }
 
-double CMatrix::d_get_whole_delivery_cost(double* pdSolution, int& iSolutionIndex, bool& bSuccess)
+double CMatrix::d_multiply_matrix(const CMatrix& m_other_matrix, bool& bSuccess)
 {
 	bSuccess = true;
-	if (iSolutionIndex < 0)
+	if (i_xSize != m_other_matrix.i_xSize || i_ySize != m_other_matrix.i_ySize)
 	{
 		bSuccess = false;
 		return -1;
 	}
-	double dRetVal = 0;
+	
+	double dValue = 0;
 	for (int i = 0; i < i_xSize; i++)
 	{
 		for (int j = 0; j < i_ySize; j++)
 		{
-			dRetVal += (pd_matrix[i][j] * pdSolution[iSolutionIndex]);
-			iSolutionIndex++;
+			dValue += pd_matrix[i][j] * m_other_matrix.pd_matrix[i][j];
 		}
+	}
+	return dValue;
+}
+
+double CMatrix::d_get_first_dim_sum(int iSecDimNumber, bool& bSuccess)
+{
+	bSuccess = true;
+	if (iSecDimNumber < 0 || iSecDimNumber > i_ySize)
+	{
+		bSuccess = false;
+		return -1;
+	}
+
+	double dRetVal = 0;
+	for (int i = 0; i < i_xSize; i++)
+	{
+		dRetVal += pd_matrix[i][iSecDimNumber];
+	}
+	return dRetVal;
+}
+
+double CMatrix::d_get_second_dim_sum(int iFirstDimNumber, bool& bSuccess)
+{
+	bSuccess = true;
+	if (iFirstDimNumber < 0 || iFirstDimNumber > i_xSize)
+	{
+		bSuccess = false;
+		return -1;
+	}
+
+	double dRetVal = 0;
+	for (int i = 0; i < i_ySize; i++)
+	{
+		dRetVal += pd_matrix[iFirstDimNumber][i];
 	}
 	return dRetVal;
 }

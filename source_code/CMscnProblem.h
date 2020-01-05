@@ -1,6 +1,8 @@
 #pragma once
 #include "CMatrix.h"
 #include "CTable.h"
+#include "CSolution.h"
+#include <iostream>
 
 class CMscnProblem
 {
@@ -43,18 +45,18 @@ public:
 	double d_get_min_warehouse_matrix_val(int iXindex, int iYindex, bool& bSuccess);
 	double d_get_max_warehouse_matrix_val(int iXindex, int iYindex, bool& bSuccess);
 
-	bool bGetQuality(double* pdSolution, int iSolutionSize, double& result);
-	bool bConstraintsSatisfied(double* pdSolution, int iSolutionSize);
-	bool bCheckSolutionSize(int iSolutionSize);
-	bool bCheckSolutionForNegativeNumbers(double* pdSolution, int iSolutionSize);
-	bool bCheckCapacityOverload(double* pdSolution);					// metoda do 4 pierwszych p-punktow tabelki
-	bool bCheckInsufficientAmount(double* pdSolution);					// metoda do 2 ostatnich p-punktow tabelki
-	bool bCheckMinMaxOutOfRage(double* pdSolution);						// metoda na sprawdzenie przedzialow min/maksowych
+	bool bGetQuality(CSolution& s_solution, double& result);
+	bool bConstraintsSatisfied(CSolution& s_solution);
+	bool bCheckSolutionSize(CSolution& s_solution);
+	bool bCheckSolutionForNegativeNumbers(CSolution& s_solution);
+	bool bCheckCapacityOverload(CSolution& s_solution);						// metoda do 4 pierwszych p-punktow tabelki
+	bool bCheckInsufficientAmount(CSolution& s_solution);					// metoda do 2 ostatnich p-punktow tabelki
+	bool bCheckMinMaxOutOfRage(CSolution& s_solution);						// metoda na sprawdzenie przedzialow min/maksowych
 
 	bool bWriteToFIle(std::string sFileName);
 	bool bReadFromFile(std::string sFileName);
 
-	bool bReadSolutionFromFile(std::string sSolutionFileName, double** pdSolution, int& iSolutionSize);
+	//bool bReadSolutionFromFile(std::string sSolutionFileName, double** pdSolution, int& iSolutionSize);
 
 private:
 	void vInitTabs();
@@ -86,6 +88,8 @@ private:
 	CMatrix m_max_factories_values;
 	CMatrix m_min_warehouse_values;
 	CMatrix m_max_warehouse_values;
+
+	//CSolution s_solution;
 
 	FILE *pf_file;
 };

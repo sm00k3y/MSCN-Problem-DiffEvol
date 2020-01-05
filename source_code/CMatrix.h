@@ -14,7 +14,9 @@ public:
 
 	double d_get_val(int i_xIndex, int i_yIndex, bool& bSuccess);
 
-	double d_get_whole_delivery_cost(double* pdSolution, int& iSolutionIndex, bool& bSuccess);
+	double d_multiply_matrix(const CMatrix& m_other_matrix, bool& bSuccess);
+	double d_get_first_dim_sum(int iSecDimNumber, bool& bSuccess);
+	double d_get_second_dim_sum(int iFirstDimNumber, bool& bSuccess);
 
 private:
 	void vInitMatrix(double*** pd_toInit, int iSizex, int iSizey);
