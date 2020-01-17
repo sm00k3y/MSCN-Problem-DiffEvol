@@ -1,4 +1,7 @@
 #pragma once
+#include "CRandom.h"
+#include "Constants.h"
+
 class CMatrix
 {
 public:
@@ -7,7 +10,7 @@ public:
 	~CMatrix();
 
 	CMatrix(const CMatrix& cOther);
-	CMatrix operator=(const CMatrix& cOther);
+	CMatrix& operator=(const CMatrix& cOther);
 
 	bool b_set_size(int iSizeX, int iSizeY);
 	bool b_set_value(double dVal, int i_xIndex, int i_yIndex);
@@ -17,6 +20,11 @@ public:
 	double d_multiply_matrix(const CMatrix& m_other_matrix, bool& bSuccess);
 	double d_get_first_dim_sum(int iSecDimNumber, bool& bSuccess);
 	double d_get_second_dim_sum(int iFirstDimNumber, bool& bSuccess);
+
+	bool b_sub_from_first_dim(int iSecondDimNumber, double dSubtract);
+	bool b_sub_from_second_dim(int iFistDimNumber, double dSubtract);
+
+	bool b_randomize_values(CRandom& cRandom);
 
 private:
 	void vInitMatrix(double*** pd_toInit, int iSizex, int iSizey);

@@ -2,9 +2,12 @@
 #include "CMatrix.h"
 #include "CTable.h"
 #include "CSolution.h"
+#include "CRandom.h"
+#include "Constants.h"
+#include "CProblem.h"
 #include <iostream>
 
-class CMscnProblem
+class CMscnProblem : public CProblem
 {
 public:
 	CMscnProblem();
@@ -15,6 +18,11 @@ public:
 	bool b_set_factory_count(unsigned int iFactoryCount);
 	bool b_set_warehouse_count(unsigned int iWarehouseCount);
 	bool b_set_shop_count(unsigned int iShopCount);
+
+	int i_get_supplier_count();
+	int i_get_factory_count();
+	int i_get_warehouse_count();
+	int i_get_shop_count();
 
 	bool b_set_delivery_matrix_val(double dVal, int iXindex, int iYindex);
 	bool b_set_factory_matrix_val(double dVal, int iXindex, int iYindex);
@@ -45,6 +53,9 @@ public:
 	double d_get_min_warehouse_matrix_val(int iXindex, int iYindex, bool& bSuccess);
 	double d_get_max_warehouse_matrix_val(int iXindex, int iYindex, bool& bSuccess);
 
+	double d_get_min_val_at(int iIndex, bool& bSuccess);
+	double d_get_max_val_at(int iIndex, bool& bSuccess);
+
 	bool bGetQuality(CSolution& s_solution, double& result);
 	bool bConstraintsSatisfied(CSolution& s_solution);
 	bool bCheckSolutionSize(CSolution& s_solution);
@@ -56,11 +67,18 @@ public:
 	bool bWriteToFIle(std::string sFileName);
 	bool bReadFromFile(std::string sFileName);
 
-	//bool bReadSolutionFromFile(std::string sSolutionFileName, double** pdSolution, int& iSolutionSize);
+	void vGenerateInstance();
+	void vGenerateInstance(int iSeed);
+	void vRandomize(CRandom& c_random);
+
+	bool bRepairSolution(CSolution& s_solution);
 
 private:
-	void vInitTabs();
-	void vInitMatrixes();
+	void vInitProblem();
+
+	bool bFixCapacity(int iCount, CMatrix& firstMatrix, CTable& tCapacityTab);
+	bool bFixCapacityShop(int iCount, CMatrix& firstMatrix, CTable& tCapacityTab);
+	bool bFixInsufficientAmount(int iCount, CMatrix& firstMatrix, CMatrix& secondMatrix);
 
 	unsigned int i_supplier_count;
 	unsigned int i_factory_count;
@@ -88,8 +106,6 @@ private:
 	CMatrix m_max_factories_values;
 	CMatrix m_min_warehouse_values;
 	CMatrix m_max_warehouse_values;
-
-	//CSolution s_solution;
 
 	FILE *pf_file;
 };
@@ -212,4 +228,24 @@ inline double CMscnProblem::d_get_min_warehouse_matrix_val(int iXindex, int iYin
 inline double CMscnProblem::d_get_max_warehouse_matrix_val(int iXindex, int iYindex, bool& bSuccess)
 {
 	return m_max_warehouse_values.d_get_val(iXindex, iYindex, bSuccess);
+}
+
+inline int CMscnProblem::i_get_supplier_count()
+{
+	return i_supplier_count;
+}
+
+inline int CMscnProblem::i_get_factory_count()
+{
+	return i_factory_count;
+}
+
+inline int CMscnProblem::i_get_warehouse_count()
+{
+	return i_warehouse_count;
+}
+
+inline int CMscnProblem::i_get_shop_count()
+{
+	return i_shop_count;
 }

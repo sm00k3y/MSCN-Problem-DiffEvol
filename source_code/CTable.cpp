@@ -1,10 +1,8 @@
 #include "CTable.h"
-#define DEFAULT_SIZE 1
-#define INITIAL_VAL -1
 
 CTable::CTable()
 {
-	i_table_size = DEFAULT_SIZE;
+	i_table_size = DEFAULT_ENTITY_SIZE;
 	initTable(&pd_table, i_table_size);
 }
 
@@ -33,7 +31,7 @@ void CTable::initTable(double** tabToInit, int iSize)
 	(*tabToInit) = new double[iSize];
 	for (int i = 0; i < iSize; i++)
 	{
-		(*tabToInit)[i] = INITIAL_VAL;
+		(*tabToInit)[i] = DEFAULT_ENTITY_INITIAL_VAL;
 	}
 }
 
@@ -52,7 +50,7 @@ CTable::CTable(const CTable& cOther)
 	vCopyMethod(cOther);
 }
 
-CTable CTable::operator=(const CTable& cOther)
+CTable& CTable::operator=(const CTable& cOther)
 {
 	delete[] pd_table;
 	vCopyMethod(cOther);
@@ -91,4 +89,16 @@ double CTable::d_get_value(int index, bool& bSuccess)
 		return -1;
 	}
 	else return pd_table[index];
+}
+
+bool CTable::b_randomize_values(CRandom& cRandom)
+{
+	double dTempVal = 0;
+	for (int i = 0; i < i_table_size; i++)
+	{
+		dTempVal = cRandom.dGenerateNumber();
+		if (dTempVal < 0) return false;
+		pd_table[i] = dTempVal;
+	}
+	return true;
 }

@@ -1,11 +1,9 @@
 #include "CMatrix.h"
-#define DEFAULT_MATRIX_SIZE 1
-#define INITIAL_VAL -1
 
 CMatrix::CMatrix()
 {
-	i_xSize = DEFAULT_MATRIX_SIZE;
-	i_ySize = DEFAULT_MATRIX_SIZE;
+	i_xSize = DEFAULT_ENTITY_SIZE;
+	i_ySize = DEFAULT_ENTITY_SIZE;
 	vInitMatrix(&pd_matrix, i_xSize, i_ySize);
 }
 
@@ -32,7 +30,7 @@ void CMatrix::vInitMatrix(double*** pd_toInit, int iSizex, int iSizey)
 		(*pd_toInit)[i] = new double[iSizey];
 		for (int j = 0; j < iSizey; j++)
 		{
-			(*pd_toInit)[i][j] = INITIAL_VAL;
+			(*pd_toInit)[i][j] = DEFAULT_ENTITY_INITIAL_VAL;
 		}
 	}
 }
@@ -47,7 +45,7 @@ CMatrix::CMatrix(const CMatrix& cOther)
 	vCopyConstructorHelper(cOther);
 }
 
-CMatrix CMatrix::operator=(const CMatrix& cOther)
+CMatrix& CMatrix::operator=(const CMatrix& cOther)
 {
 	vDeleteMatrix();
 	vCopyConstructorHelper(cOther);
@@ -171,4 +169,41 @@ double CMatrix::d_get_second_dim_sum(int iFirstDimNumber, bool& bSuccess)
 		dRetVal += pd_matrix[iFirstDimNumber][i];
 	}
 	return dRetVal;
+}
+
+bool CMatrix::b_sub_from_first_dim(int iSecondDimNumber, double dSubtract)
+{
+	if (iSecondDimNumber < 0 || iSecondDimNumber > i_ySize) return false;
+	for (int i = 0; i < i_xSize; i++)
+	{
+		if ((pd_matrix[i][iSecondDimNumber] - dSubtract) > 0) pd_matrix[i][iSecondDimNumber] -= dSubtract;
+		else pd_matrix[i][iSecondDimNumber] = 0;
+	}
+	return true;
+}
+
+bool CMatrix::b_sub_from_second_dim(int iFistDimNumber, double dSubtract)
+{
+	if (iFistDimNumber < 0 || iFistDimNumber > i_xSize) return false;
+	for (int i = 0; i < i_ySize; i++)
+	{
+		if ((pd_matrix[iFistDimNumber][i] - dSubtract) > 0) pd_matrix[iFistDimNumber][i] -= dSubtract;
+		else pd_matrix[iFistDimNumber][i] = 0;
+	}
+	return true;
+}
+
+bool CMatrix::b_randomize_values(CRandom& cRandom)
+{
+	double dTempVal = 0;
+	for (int i = 0; i < i_xSize; i++) 
+	{
+		for (int j = 0; j < i_ySize; j++)
+		{
+			dTempVal = cRandom.dGenerateNumber();
+			if (dTempVal < 0) return false;
+			pd_matrix[i][j] = dTempVal;
+		}
+	}
+	return true;
 }
